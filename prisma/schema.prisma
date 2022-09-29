@@ -9,3 +9,34 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+model Room {
+  id      String   @id @unique
+  riddle  String
+  picture Picture?
+}
+
+model Picture {
+  id              Int      @id @default(autoincrement())
+  room            Room     @relation(fields: [roomId], references: [id])
+  roomId          String   @unique
+  strokes         Stroke[]
+  backgroundColor String
+}
+
+model Stroke {
+  id          Int     @id @default(autoincrement())
+  strokeColor String
+  strokeWidth Int
+  points      Point[]
+  picture     Picture @relation(fields: [pictureId], references: [id])
+  pictureId   Int
+}
+
+model Point {
+  id       Int    @id @default(autoincrement())
+  x        Float
+  y        Float
+  stroke   Stroke @relation(fields: [strokeId], references: [id], onDelete: Cascade)
+  strokeId Int
+}
