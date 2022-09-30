@@ -8,7 +8,7 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { Picture, Room, Stroke } from './events.interfaces';
+import { Guess, Picture, Room, Stroke } from './events.interfaces';
 import { EventsService } from './events.service';
 import { events } from './events.constants';
 
@@ -39,7 +39,10 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     if (room !== null) {
       socket.join(roomId);
       if (room.picture?.strokes) {
-        socket.emit(events.fromServer.INITIAL_PICTURE_FROM_SERVER, room.picture);
+        socket.emit(events.fromServer.INITIAL_PICTURE_FROM_SERVER, {
+          picture: room.picture,
+          guesses: room.guesses,
+        });
       } else {
         socket.emit(events.fromServer.INITIAL_PICTURE_FROM_SERVER, undefined);
       }
@@ -74,7 +77,27 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @SubscribeMessage(events.toServer.CLEAR_TO_SERVER)
   async clear(@ConnectedSocket() socket: Socket, @MessageBody() roomId: Room['id']) {
     const picture = await this.eventsService.clearPictureInRoom(roomId);
-    this.server.to(roomId).emit(events.fromServer.INITIAL_PICTURE_FROM_SERVER, picture);
+    this.server.to(roomId).emit(events.fromServer.INITIAL_PICTURE_FROM_SERVER, { picture });
+  }
+
+  @SubscribeMessage(events.toServer.GUESS_TO_SERVER)
+  async guessToServer(
+    @ConnectedSocket() socket: Socket,
+    @MessageBody()
+    {
+      roomId,
+      author,
+      guess,
+    }: { roomId: Room['id']; author: Guess['author']; guess: Guess['guess'] },
+  ) {
+    const answerOrGuess = await this.eventsService.handleGuessToRoom(roomId, author, guess);
+    if (typeof answerOrGuess === 'string') {
+      this.server
+        .to(roomId)
+        .emit(events.fromServer.ANSWER_FROM_SERVER, { author, answer: answerOrGuess });
+    } else {
+      this.server.to(roomId).emit(events.fromServer.GUESS_FROM_SERVER, answerOrGuess);
+    }
   }
 
   handleConnection(socket: Socket) {

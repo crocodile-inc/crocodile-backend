@@ -2,6 +2,14 @@ export interface Room {
   id: string;
   riddle: string;
   picture: Picture;
+  guesses: Guess[];
+  unraveled: boolean;
+}
+
+export interface Guess {
+  id: number;
+  author: string;
+  guess: string;
 }
 
 export interface Picture {

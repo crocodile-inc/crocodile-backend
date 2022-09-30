@@ -11,9 +11,19 @@ datasource db {
 }
 
 model Room {
-  id      String   @id @unique
-  riddle  String
-  picture Picture?
+  id        String   @id @unique
+  riddle    String
+  picture   Picture?
+  guesses   Guess[]
+  unraveled Boolean  @default(false)
+}
+
+model Guess {
+  id     Int    @id @default(autoincrement())
+  author String
+  guess  String
+  room   Room   @relation(fields: [roomId], references: [id])
+  roomId String
 }
 
 model Picture {

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Picture, Room, Stroke } from './events.interfaces';
+import { Guess, Picture, Room, Stroke } from './events.interfaces';
 import { nanoid } from 'nanoid';
 import { PrismaService } from 'prisma/prisma.service';
 
@@ -27,6 +27,7 @@ export class EventsService {
     return await this.prismaService.room.findUnique({
       where: { id },
       include: {
+        guesses: true,
         picture: {
           include: {
             strokes: {
@@ -74,5 +75,22 @@ export class EventsService {
         strokes: true,
       },
     });
+  }
+
+  async handleGuessToRoom(id: Room['id'], author: Guess['author'], guess: Guess['guess']) {
+    const newGuess = await this.prismaService.guess.create({
+      data: {
+        roomId: id,
+        author,
+        guess,
+      },
+    });
+    const room = await this.prismaService.room.findUnique({ where: { id } });
+    if (room.riddle.toLowerCase() === newGuess.guess.toLowerCase()) {
+      await this.prismaService.room.update({ where: { id }, data: { unraveled: true } });
+      return room.riddle;
+    } else {
+      return newGuess;
+    }
   }
 }
