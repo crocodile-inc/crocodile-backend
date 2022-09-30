@@ -86,11 +86,15 @@ export class EventsService {
       },
     });
     const room = await this.prismaService.room.findUnique({ where: { id } });
-    if (room.riddle.toLowerCase() === newGuess.guess.toLowerCase()) {
+    if (!room.unraveled && room.riddle.toLowerCase() === newGuess.guess.toLowerCase()) {
       await this.prismaService.room.update({ where: { id }, data: { unraveled: true } });
-      return room.riddle;
+      const victoriousGuess = await this.prismaService.guess.update({
+        where: { id: newGuess.id },
+        data: { victorious: true },
+      });
+      return [victoriousGuess, room.riddle] as const;
     } else {
-      return newGuess;
+      return [newGuess, undefined] as const;
     }
   }
 }

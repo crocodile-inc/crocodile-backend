@@ -90,13 +90,14 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
       guess,
     }: { roomId: Room['id']; author: Guess['author']; guess: Guess['guess'] },
   ) {
-    const answerOrGuess = await this.eventsService.handleGuessToRoom(roomId, author, guess);
-    if (typeof answerOrGuess === 'string') {
-      this.server
-        .to(roomId)
-        .emit(events.fromServer.ANSWER_FROM_SERVER, { author, answer: answerOrGuess });
-    } else {
-      this.server.to(roomId).emit(events.fromServer.GUESS_FROM_SERVER, answerOrGuess);
+    const [createdGuess, answer] = await this.eventsService.handleGuessToRoom(
+      roomId,
+      author,
+      guess,
+    );
+    this.server.to(roomId).emit(events.fromServer.GUESS_FROM_SERVER, createdGuess);
+    if (answer) {
+      this.server.to(roomId).emit(events.fromServer.ANSWER_FROM_SERVER, { author, answer });
     }
   }
 

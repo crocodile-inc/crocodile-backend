@@ -19,11 +19,12 @@ model Room {
 }
 
 model Guess {
-  id     Int    @id @default(autoincrement())
-  author String
-  guess  String
-  room   Room   @relation(fields: [roomId], references: [id])
-  roomId String
+  id         Int      @id @default(autoincrement())
+  author     String
+  guess      String
+  victorious Boolean?
+  room       Room     @relation(fields: [roomId], references: [id])
+  roomId     String
 }
 
 model Picture {
