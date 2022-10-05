@@ -68,10 +68,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }: { roomId: Room['id']; backgroundColor: Picture['backgroundColor'] },
   ) {
     await this.eventsService.updateBackgroundColorInRoom(roomId, backgroundColor);
-    this.server
-      .to(roomId)
-      .except(socket.id)
-      .emit(events.fromServer.BACKGROUND_COLOR_FROM_SERVER, backgroundColor);
+    this.server.to(roomId).emit(events.fromServer.BACKGROUND_COLOR_FROM_SERVER, backgroundColor);
   }
 
   @SubscribeMessage(events.toServer.CLEAR_TO_SERVER)
