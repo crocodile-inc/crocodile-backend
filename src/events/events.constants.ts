@@ -16,3 +16,8 @@ export const events = {
     ANSWER_FROM_SERVER: 'ANSWER_FROM_SERVER',
   },
 };
+
+export const canvasSizes = {
+  width: 650,
+  height: 650,
+};

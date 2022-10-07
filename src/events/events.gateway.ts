@@ -8,13 +8,17 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { Guess, Picture, Room, Stroke } from './events.interfaces';
+import { Guess, Picture, Room, Stroke } from 'interfaces';
 import { EventsService } from './events.service';
 import { events } from './events.constants';
+import { GalleryService } from 'gallery/gallery.service';
 
 @WebSocketGateway({ cors: true })
 export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
-  constructor(private readonly eventsService: EventsService) {}
+  constructor(
+    private readonly eventsService: EventsService,
+    private readonly galleryService: GalleryService,
+  ) {}
 
   @WebSocketServer()
   server: Server;
@@ -68,10 +72,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }: { roomId: Room['id']; backgroundColor: Picture['backgroundColor'] },
   ) {
     await this.eventsService.updateBackgroundColorInRoom(roomId, backgroundColor);
-    this.server
-      .to(roomId)
-      .except(socket.id)
-      .emit(events.fromServer.BACKGROUND_COLOR_FROM_SERVER, backgroundColor);
+    this.server.to(roomId).emit(events.fromServer.BACKGROUND_COLOR_FROM_SERVER, backgroundColor);
   }
 
   @SubscribeMessage(events.toServer.CLEAR_TO_SERVER)
@@ -98,6 +99,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.server.to(roomId).emit(events.fromServer.GUESS_FROM_SERVER, createdGuess);
     if (answer) {
       this.server.to(roomId).emit(events.fromServer.ANSWER_FROM_SERVER, { author, answer });
+      await this.galleryService.saveToGallery(roomId);
     }
   }
 

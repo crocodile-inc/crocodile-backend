@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Guess, Picture, Room, Stroke } from './events.interfaces';
+import { Guess, Picture, Room, Stroke } from 'interfaces';
 import { nanoid } from 'nanoid';
 import { PrismaService } from 'prisma/prisma.service';
 
