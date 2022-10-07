@@ -8,7 +8,7 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { Guess, Picture, Room, Stroke } from './events.interfaces';
+import { Guess, Picture, Room, Stroke } from 'interfaces';
 import { EventsService } from './events.service';
 import { events } from './events.constants';
 
