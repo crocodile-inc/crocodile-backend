@@ -13,7 +13,7 @@ import { EventsService } from './events.service';
 import { events } from './events.constants';
 import { GalleryService } from 'gallery/gallery.service';
 
-@WebSocketGateway({ cors: true })
+@WebSocketGateway()
 export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   constructor(
     private readonly eventsService: EventsService,
