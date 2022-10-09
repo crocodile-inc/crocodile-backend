@@ -56,10 +56,14 @@ export class GalleryService implements OnModuleInit {
         },
       },
     });
+    const arrayCountOfStrokes = unraveledRooms.map(room => room.picture.strokes.length);
+    arrayCountOfStrokes.sort((a, b) => b - a);
+    const countOfBigPictures = Math.ceil(arrayCountOfStrokes.length * 0.25);
+    const minStrokesForBigSize = arrayCountOfStrokes[countOfBigPictures - 1];
     return unraveledRooms.map(room => ({
       id: room.id,
       answer: room.riddle,
-      bigSize: room.picture.strokes.length > 50,
+      bigSize: room.picture.strokes.length > minStrokesForBigSize,
     }));
   }
 }
