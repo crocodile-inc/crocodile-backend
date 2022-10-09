@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, OnModuleInit } from '@nestjs/common';
 import { PrismaService } from 'prisma/prisma.service';
 import { createCanvas } from 'canvas';
 import { canvasSizes } from '../events/events.constants';
@@ -8,8 +8,12 @@ import { existsSync, mkdirSync, writeFileSync } from 'fs';
 import { join } from 'path';
 
 @Injectable()
-export class GalleryService {
+export class GalleryService implements OnModuleInit {
   constructor(private readonly prismaService: PrismaService) {}
+
+  async onModuleInit() {
+    await this.initPictures();
+  }
 
   async saveToGallery(id: Room['id']) {
     const picture = await this.prismaService.picture.findUnique({
@@ -31,6 +35,17 @@ export class GalleryService {
     writeFileSync(`${dir}/${id}.png`, buffer);
   }
 
+  async initPictures() {
+    const arrayOfUnraveled = (
+      await this.prismaService.room.findMany({
+        where: { unraveled: true },
+      })
+    ).map(room => room.id);
+    for (const id of arrayOfUnraveled) {
+      await this.saveToGallery(id);
+    }
+  }
+
   async getUnraveled() {
     const unraveledRooms = await this.prismaService.room.findMany({
       where: { unraveled: true },
@@ -41,10 +56,14 @@ export class GalleryService {
         },
       },
     });
+    const arrayCountOfStrokes = unraveledRooms.map(room => room.picture.strokes.length);
+    arrayCountOfStrokes.sort((a, b) => b - a);
+    const countOfBigPictures = Math.ceil(arrayCountOfStrokes.length * 0.25);
+    const minStrokesForBigSize = arrayCountOfStrokes[countOfBigPictures - 1];
     return unraveledRooms.map(room => ({
       id: room.id,
       answer: room.riddle,
-      bigSize: room.picture.strokes.length > 50,
+      bigSize: room.picture.strokes.length > minStrokesForBigSize,
     }));
   }
 }
