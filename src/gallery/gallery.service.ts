@@ -46,6 +46,18 @@ export class GalleryService implements OnModuleInit {
     }
   }
 
+  async deleteAllNotUnraveled() {
+    await this.prismaService.room.deleteMany({
+      where: { unraveled: false },
+    });
+  }
+
+  async deleteAllByRoomId(roomIds: Room['id'][]) {
+    await this.prismaService.room.deleteMany({
+      where: { id: { in: roomIds } },
+    });
+  }
+
   async getUnraveled() {
     const unraveledRooms = await this.prismaService.room.findMany({
       where: { unraveled: true },
