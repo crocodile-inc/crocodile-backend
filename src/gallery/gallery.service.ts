@@ -75,7 +75,7 @@ export class GalleryService implements OnModuleInit {
     return unraveledRooms.map(room => ({
       id: room.id,
       answer: room.riddle,
-      bigSize: room.picture.strokes.length > minStrokesForBigSize,
+      bigSize: room.picture.strokes.length >= minStrokesForBigSize,
     }));
   }
 }
